@@ -1,0 +1,209 @@
+ARC MOTHERBOARD | EASYEDA TO STM32 NET MAP
+=========================================
+
+U1 is the STM32H723ZGT6 in LQFP-144 on sheet 07.
+Find the GPIO name on the symbol and check the physical pad in brackets.
+Example: ETH_REF_CLK -> PA1 [35] means put ETH_REF_CLK on MCU pad 35.
+Reuse the exact names below for the cross-sheet connections. AF identifies
+the firmware alternate function. TX/RX directions are from the motherboard.
+The saved EasyEDA project has these labels on sheets 08 and 09. Sheet 07
+still needs the wiring. The map gives the draft destinations to wire there.
+Put the name on the wire and confirm that the actual net has that name
+in EasyEDA's net panel. Check each endpoint after adding the sheet 07 port.
+
+
+08 | ETHERNET TO ORIN
+---------------------
+ETH_REF_CLK       -> PA1  [ 35]  AF11  50 MHz input from LAN8742A pad 14
+ETH_MDIO          -> PA2  [ 36]  AF11  LAN8742A pad 12, bidirectional
+ETH_MDC           -> PC1  [ 27]  AF11  LAN8742A pad 13
+ETH_CRS_DV        -> PA7  [ 43]  AF11  LAN8742A pad 11
+ETH_RXD0          -> PC4  [ 44]  AF11  LAN8742A pad 8
+ETH_RXD1          -> PC5  [ 45]  AF11  LAN8742A pad 7
+ETH_TX_EN         -> PG11 [126]  AF11  LAN8742A pad 16
+ETH_TXD0          -> PG13 [128]  AF11  LAN8742A pad 17
+ETH_TXD1          -> PB13 [ 74]  AF11  LAN8742A pad 18
+PHY_NRST          -> PE2  [  1]  GPIO  Active-low output to LAN8742A pad 15
+
+PE3 [2] is reserved for PHY_IRQ. The PHY's pad 14 supplies REF_CLK in this
+design, so leave PHY_IRQ unwired and read link state over MDIO.
+
+
+09 | MOTOR AND STEERING CONNECTORS
+----------------------------------
+DRIVE_FL_TX       -> PA9  [101]  AF7   USART1 TX, U3
+DRIVE_FL_RX       -> PA10 [102]  AF7   USART1 RX, U3
+DRIVE_FR_TX       -> PD5  [119]  AF7   USART2 TX, U11
+DRIVE_FR_RX       -> PD6  [122]  AF7   USART2 RX, U11
+DRIVE_BR_TX       -> PE8  [ 59]  AF7   UART7 TX, U12
+DRIVE_BR_RX       -> PE7  [ 58]  AF7   UART7 RX, U12
+DRIVE_BL_TX       -> PD1  [115]  AF8   UART4 TX, U13
+DRIVE_BL_RX       -> PD0  [114]  AF8   UART4 RX, U13
+VESC_COMM_TX      -> PG1  [ 57]  AF11  UART9 TX, U14 to the VESC RX
+VESC_COMM_RX      -> PG0  [ 56]  AF11  UART9 RX, U14 from the VESC TX
+STEER_UART_TX     -> PE1  [142]  AF8   UART8 TX, U16
+STEER_UART_RX     -> PE0  [141]  AF8   UART8 RX, U16
+STEER_PWM         -> PB7  [137]  AF1   TIM17_CH1N through 33 ohms, U15 pin 3
+
+BR and BL are called RR and RL in the earlier guide. Use the BR and BL
+spellings above on both sheets to match the EasyEDA connectors.
+U14 contacts are 1 GND, 2 VESC_COMM_TX, 3 VESC_COMM_RX, 4 unused.
+For PWM, wire PB7 -> STEER_PWM_MCU -> 33 ohms -> STEER_PWM -> U15 pin 3.
+A50S_ESTOP_N goes to the independent stop circuit on sheet 04.
+U15 pin 1 has a ground wire and a no-connect flag in the saved drawing.
+Remove the flag. Route pin 1 SERVO_GND and pin 2 SERVO_VPLUS to the rated BEC.
+Bond SERVO_GND to board GND at the power-return connection for the PWM reference.
+
+
+09 | ANGLE SENSORS
+------------------
+ANGLE_A_SCK       -> PA5  [ 41]  AF5   SPI1 clock, angle 1-4
+ANGLE_A_MISO      -> PA6  [ 42]  AF5   SPI1 input
+ANGLE_A_MOSI      -> PB5  [135]  AF5   SPI1 output
+ANGLE_B_SCK       -> PD3  [117]  AF5   SPI2 clock, angle 5-8
+ANGLE_B_MISO      -> PB14 [ 75]  AF5   SPI2 input
+ANGLE_B_MOSI      -> PB15 [ 76]  AF5   SPI2 output
+ANGLE_1_CS_N      -> PE9  [ 60]  GPIO  Active-low output, U17
+ANGLE_2_CS_N      -> PE10 [ 63]  GPIO  Active-low output, U18
+ANGLE_3_CS_N      -> PE11 [ 64]  GPIO  Active-low output, U19
+ANGLE_4_CS_N      -> PE15 [ 68]  GPIO  Active-low output, U20
+ANGLE_5_CS_N      -> PD4  [118]  GPIO  Active-low output, U21
+ANGLE_6_CS_N      -> PD7  [123]  GPIO  Active-low output, U22
+ANGLE_7_CS_N      -> PD10 [ 79]  GPIO  Active-low output, U23
+ANGLE_8_CS_N      -> PD11 [ 80]  GPIO  Active-low output, U24
+
+U17-U24 contacts are 1 GND, 2 CS_N, 3 SCK, 4 MISO, 5 MOSI, 6 ANGLE_3V3.
+
+
+09 | IMUS
+---------
+IMU_CG_SCK        -> PC10 [111]  AF6   SPI3 clock, CN1
+IMU_CG_MISO       -> PC11 [112]  AF6   SPI3 input
+IMU_CG_MOSI       -> PC12 [113]  AF6   SPI3 output
+IMU_CG_CS_N       -> PG2  [ 87]  GPIO  Active-low output
+IMU_CG_DRDY       -> PC7  [ 97]        GPIO input or TIM8_CH2 capture (AF3)
+IMU_FRONT_SCK     -> PE12 [ 65]  AF5   SPI4 clock, CN2
+IMU_FRONT_MISO    -> PE13 [ 66]  AF5   SPI4 input
+IMU_FRONT_MOSI    -> PE14 [ 67]  AF5   SPI4 output
+IMU_FRONT_CS_N    -> PG3  [ 88]  GPIO  Active-low output
+IMU_FRONT_DRDY    -> PC8  [ 98]        GPIO input or TIM8_CH3 capture (AF3)
+
+CN1/CN2 contacts are 1 GND, 2 IMU_3V3, 3 CS_N, 4 SCK, 5 MOSI, 6 MISO,
+7 DRDY, 8 GND. These and the angle contact orders are from the saved CAD.
+
+
+09 | TIME-OF-FLIGHT SENSORS
+-------------------------
+TOF_1_SCL         -> PB8  [139]  AF4   I2C1 clock, U25
+TOF_1_SDA         -> PB9  [140]  AF4   I2C1 data, U25
+TOF_2_SCL         -> PB10 [ 69]  AF4   I2C2 clock, U26
+TOF_2_SDA         -> PB11 [ 70]  AF4   I2C2 data, U26
+TOF_3_SCL         -> PA8  [100]  AF4   I2C3 clock, U27
+TOF_3_SDA         -> PC9  [ 99]  AF4   I2C3 data, U27
+TOF_4_SCL         -> PF14 [ 54]  AF4   I2C4 clock, U28
+TOF_4_SDA         -> PF15 [ 55]  AF4   I2C4 data, U28
+
+TOF_1_XSHUT       -> TBD          Optional shutdown output, U25
+TOF_1_GPIO1       -> TBD          Optional interrupt input, U25
+TOF_2_XSHUT       -> TBD          Optional shutdown output, U26
+TOF_2_GPIO1       -> TBD          Optional interrupt input, U26
+TOF_3_XSHUT       -> TBD          Optional shutdown output, U27
+TOF_3_GPIO1       -> TBD          Optional interrupt input, U27
+TOF_4_XSHUT       -> TBD          Optional shutdown output, U28
+TOF_4_GPIO1       -> TBD          Optional interrupt input, U28
+
+Each ToF has its own I2C bus. For the polled setup, leave XSHUT and GPIO1
+unwired at the MCU. The sensor board already pulls XSHUT high.
+Contact order on both boards is 1 GND, 2 +3V3, 3 XSHUT, 4 GPIO1, 5 SDA, 6 SCL.
+FIX BEFORE WIRING SHEET 07: U25-U28 pin 6 is currently wired onto the shared
+TOF_3V3 rail. Delete the four long pin-6 wires to that rail. Leave pin 2 on
+TOF_3V3. Give each pin 6 its own short wire to its TOF_n_SCL port, then use
+Highlight Net to verify that each SCL stays separate from 3.3 V and the other SCLs.
+
+
+07 | LOCAL MCU SUPPORT
+----------------------
+MCU_HSE_IN        -> PH0  [ 23]        MCU crystal input
+MCU_HSE_OUT       -> PH1  [ 24]        MCU crystal output
+MCU_NRST          -> NRST [ 25]        MCU reset and SWD header
+MCU_SWDIO         -> PA13 [105]  AF0   SWD data
+MCU_SWCLK         -> PA14 [109]  AF0   SWD clock
+MCU_SWO           -> PB3  [133]  AF0   Optional trace
+MCU_BOOT0         -> BOOT0[138]        Boot strap
+DEBUG_UART_TX     -> PD8  [ 77]  AF7   Optional USART3 TX
+DEBUG_UART_RX     -> PD9  [ 78]  AF7   Optional USART3 RX
+LOGIC_3V3         -> VDD/VDDLDO [17, 30, 39, 52, 62, 72, 84, 108, 121, 144]
+LOGIC_3V3         -> VBAT [6], VDD33USB [95], PDR_ON [143]
+VDDA_MCU          -> VDDA [33]         From the filtered 3.3 V supply
+VREF_MCU          -> VREF+ [32]        From the 3.3 V reference link
+MCU_VCAP          -> VCAP [71, 106]    Follow ST's internal LDO bypass circuit
+GND               -> VSS [16, 38, 51, 61, 83, 94, 107, 120, 130]
+GND               -> VSSA [31]         Analog return per ST reference
+
+STM32 pad 6 is called VBAT by ST. Feed it from LOGIC_3V3. Keep the 4S battery
+net VBAT from sheet 01 off this pad.
+
+
+03-06 | RESERVED CONTROLS FOR LATER
+----------------------------------
+ESTOP_STATUS      -> PF2  [ 12]  GPIO  Conditioned input from sheet 04
+PWR_GOOD          -> PE4  [  3]  GPIO  Conditioned input
+PWR_ALERT_1       -> PE5  [  4]  GPIO  Conditioned input
+PWR_FAULT_1       -> PE6  [  5]  GPIO  Conditioned input
+PWR_I2C_SCL       -> PF1  [ 11]  AF6   I2C5 power-monitor clock
+PWR_I2C_SDA       -> PF0  [ 10]  AF6   I2C5 power-monitor data
+CELL_SPI_SCK      -> PF7  [ 19]  AF5   SPI5 conditional clock
+CELL_SPI_MISO     -> PF8  [ 20]  AF5   SPI5 conditional input
+CELL_SPI_MOSI     -> PF9  [ 21]  AF5   SPI5 conditional output
+CELL_CS_N         -> PF6  [ 18]  GPIO  Conditional chip select
+BAT_V_AIN         -> PB0  [ 46]        Conditioned ADC voltage input
+BAT_I_AIN         -> PB1  [ 47]        Conditioned ADC current input
+
+These reservations come from the worksheet. The I2C5 hardware pins are
+available and still need firmware setup in the current Zephyr board target.
+Use a 3.3 V-compatible PWR_GOOD signal at PE4. The raw converter PGOOD
+pulled up to converter VCC needs conditioning before reaching that pad.
+
+
+POWER, PHY, AND HARDWARE-ONLY NETS
+---------------------------------
+WALL_19V_IN   -> Planned 19 V DC brick positive input before F_WALL
+VWALL         -> Planned protected wall feed after F_WALL, to wall ORing
+VBAT          -> Sheet 01 battery feed
+MOTOR_BUS_RAW -> Battery-only protected feed for sheet 03
+LV_OR_RAW     -> Combined battery/wall supply before the run switch
+LV_RUN_RAW    -> Switched supply feeding the board's converters
+LV_RUN_EN     -> U4 LM74800 EN/UVLO pad 6, driven by the RUN/OFF circuit
++12V          -> Regulated 12 V converter output
+LOGIC_5V      -> Regulated 5 V logic supply
+ANGLE_3V3     -> Angle-sensor header power
+IMU_3V3       -> IMU header power
+TOF_3V3       -> ToF header power
+ETH_3V3A      -> Ethernet analog supply
+ETH_TX_P/N, ETH_RX_P/N, KETH_TX_P/N, KETH_RX_P/N -> Ethernet pairs
+XTAL1, XTAL2  -> PHY oscillator on sheet 08
+ETH_CABLE_TERM, ETH_SHIELD, RJ4/5, RJ7/8 -> Cable-side Ethernet circuitry
+
+Wall brick, positive wire  -> J_WALL (+) -> WALL_19V_IN -> F_WALL -> VWALL
+Wall brick, negative wire  -> J_WALL (-) -> board power GND
+J_WALL is the two-wire DC input. Verify polarity at the actual brick leads.
+For an XT30 connection, C431092 is the PCB-side male and C99102 is the
+female plug that goes on the brick's two wires.
+In the saved drawing, VWALL is on the input side of F_WALL. When you add
+J_WALL, name that input side WALL_19V_IN and move VWALL to the fused side.
+
+
+REFERENCES
+----------
+Saved labels: easyeda/ARC Motherboard.eprj2, sheets 01, 08 and 09.
+Draft assignments and more circuit detail: sync-mcu-easyeda-guide.md.
+ST package pins and alternate functions:
+https://www.st.com/resource/en/datasheet/stm32h723zg.pdf
+https://github.com/STMicroelectronics/STM32_open_pin_data/tree/7d1f1514ed5583ec5007ad91236b4e1d377295b1/mcu
+EasyEDA cross-sheet ports: https://prodocs.easyeda.com/en/schematic/place-net-port/index.html
+XT30 PCB connector: https://jlcpcb.com/partdetail/Changzhou_AmassElec-XT30PWM/C431092
+XT30 cable plug: https://www.lcsc.com/product-detail/plug_Changzhou-Amass-Elec-XT30U-F_C99102.html
+
+The board drawing uses the working eight-angle/four-ToF and drive UART scope.
+The accepted sensor ADR and controller ICD still specify the prior counts
+and CAN drive commands. Reconcile those interfaces before PCB release.

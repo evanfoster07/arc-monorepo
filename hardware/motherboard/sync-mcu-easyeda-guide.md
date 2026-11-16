@@ -36,7 +36,7 @@ The number in parentheses is the physical **U1 pad**. AF is the STM32 alternate 
 | 10 STEER_UART | UART8 | TX **PE1 (142)**, RX **PE0 (141)** | 8 |
 | 10 STEER_PWM_MCU | TIM17_CH1N | **PB7 (137)** | 1 |
 | 07 DEBUG_UART (optional) | USART3 | TX **PD8 (77)**, RX **PD9 (78)** | 7 |
-| 07 UART_SPARE (optional) | UART9 | TX **PG1 (57)**, RX **PG0 (56)** | 11 |
+| 09 VESC_COMM (optional, current car) | UART9 | TX **PG1 (57)**, RX **PG0 (56)** | 11 |
 | 11 ANGLE_1…4 | SPI1 | SCK **PA5 (41)**, MISO **PA6 (42)**, MOSI **PB5 (135)** | 5 |
 | 11 ANGLE_5…8 | SPI2 | SCK **PD3 (117)**, MISO **PB14 (75)**, MOSI **PB15 (76)** | 5 |
 | 11 IMU_CG | SPI3 | SCK **PC10 (111)**, MISO **PC11 (112)**, MOSI **PC12 (113)** | 6 |
@@ -279,6 +279,19 @@ Use separate precrimped pigtails and strain-relieved splices where the two ends 
 | 0603 series links and test pads | 2 links and 2 signal test pads per port. Start with 0 Ω at TX/RX footprints for bench capture, then fit damping/protection based on measured edges and off-state tests. | `C21189` (0 Ω), `C23140` (33 Ω tuning candidate) |
 
 Keep the independent `A50S_ESTOP_N` path and delayed motor-bus cut. Leave the former CAN transceiver and termination out of this capture draft. The active drive ICD still assigns commands to CAN, and ARC UART streaming/command firmware is unfinished. Prove all four links together with the motors switching, then verify fresh-command gating, link-loss braking, independent e-stop and re-arm before enabling drive. [Controller ICD](../../systems/icd/controller-telemetry.md) · [UART readiness](../../systems/reviews/a50s-uart-readiness.md)
+
+### Current car — Trampa VESC COMM
+
+Place a dedicated 4-position JST XH header `J_VESC_COMM`, marked **VESC COMM**. Use the reserved UART9 for this point-to-point 3.3 V link. Use JST `B4B-XH-A(LF)(SN)` (`C144395`) on the motherboard and `XHP-4` (`C144403`) at the motherboard end of the cable. Match the Trampa end to the installed VESC's **COMM** socket. The older ARC electrical notes link to a boxed Trampa VESC 6; confirm the Mk revision and socket orientation before crimping. [ARC Electrical Needs](https://docs.google.com/document/d/1MA20sFa6s1phXb5iXPU81haLLi5EpR35NLECIRCUrE8/edit) · [Trampa manual](https://trampaboards.com/resources/manuals/251.pdf#page=3)
+
+| `J_VESC_COMM` pin | Motherboard | VESC COMM |
+| --- | --- | --- |
+| 1 | `GND` | `GND` |
+| 2 | `VESC_COMM_TX` from PG1 (57) | `RX` |
+| 3 | `VESC_COMM_RX` to PG0 (56) | `TX` |
+| 4 | NC | Open |
+
+Send VESC packets over UART at the configured COMM baud rate. The adapter carries signal and reference only. If the servo signal lead goes to the VESC's separate **PPM/SERVO** port, compatible firmware can output PWM there in response to `COMM_SET_SERVO_POS`. In VESC Tool use a UART-enabled app with the PPM input app disabled, then enable **Servo Out**. Verify servo power and steering behavior at startup and on UART loss before using this path. Retain the direct PWM option on sheet 10. [VESC Tool Servo Out setting](https://github.com/vedderb/vesc_tool/blob/master/res/config/6.06/parameters_appconf.xml) · [Command implementation](../../firmware/vesc/bldc/comm/commands.c)
 
 ## 10 — Steering UART and PWM
 
